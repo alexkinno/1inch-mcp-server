@@ -21,7 +21,7 @@ dependencies = [
 classifiers = [
 ]
 
-license = {text = "MIT"}
+license = "MIT"
 
 [project.scripts]
 1inch-mcp = "main:main"
