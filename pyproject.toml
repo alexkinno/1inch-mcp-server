@@ -18,6 +18,7 @@ dependencies = [
  "tomlkit>=0.13.3",
  "pydantic>=2.11.7",
  "pydantic-settings>=2.0.0",
+ "uvicorn>=0.30.0",
 ]
 classifiers = [
 ]
