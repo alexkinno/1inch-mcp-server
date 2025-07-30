@@ -11,7 +11,7 @@ keywords = [ "mcp", "1inch", "model", "context", "protocol", "server"]
 requires-python = ">=3.11"
 dependencies = [
  "fastapi>=0.116.1",
- "mcp>=1.12.2",
+ "fastmcp>=2.0.0",
  "httpx>=0.28.1",
  "pyjwt>=2.10.1",
  "ruff>=0.12.5",

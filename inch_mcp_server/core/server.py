@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -13,10 +13,6 @@ logger = setup_logger("server")
 MCP_BASE_PORT = int(os.getenv("PORT", os.getenv("MCP_BASE_PORT", 8000)))
 MCP_BASE_URL = os.getenv("MCP_BASE_URL", "http://localhost")
 
-SERVER_DEPENDENCIES = [
-    'pydantic',
-]
-
 # Global reference to the MCP server instance for testing purposes
 mcp = None
 
@@ -25,21 +21,20 @@ def setup_stdio_server():
     """Setup and run the MCP server with stdio transport."""
     global mcp
 
-    mcp = FastMCP('1inch-mcp-server', dependencies=SERVER_DEPENDENCIES)
+    mcp = FastMCP('1inch-mcp-server')
+    
+    # Initialize tool handlers
+    LimitOrderHandler(mcp)
 
     return mcp
 
 
 def setup_http_server():
-    """Set up the MCP server with streamable-http transport."""
+    """Set up the MCP server with HTTP transport."""
     global mcp
     
     # Create FastMCP server for HTTP transport
-    mcp = FastMCP('1inch-mcp-server', dependencies=SERVER_DEPENDENCIES,
-                  server_url=f"{MCP_BASE_URL}:{MCP_BASE_PORT}/mcp",
-                  port=MCP_BASE_PORT,
-                  stateless_http=True,
-                  host="0.0.0.0")
+    mcp = FastMCP('1inch-mcp-server')
     
     # Add health check endpoint for HTTP transport
     @mcp.custom_route("/", methods=["GET"])
@@ -80,7 +75,7 @@ def main():
     else:
         # Run HTTP server (default)
         mcp = setup_http_server()
-        mcp.run(transport='streamable-http')
+        mcp.run(transport='http', host="0.0.0.0", port=MCP_BASE_PORT, path="/mcp")
 
     return mcp
 
