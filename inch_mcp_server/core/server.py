@@ -1,17 +1,17 @@
 import argparse
-import os
 
 from fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
 from inch_mcp_server.utils.logger_setup import setup_logger
 
 logger = setup_logger("server")
 
-MCP_BASE_PORT = int(os.getenv("PORT", os.getenv("MCP_BASE_PORT", 8000)))
-MCP_BASE_URL = os.getenv("MCP_BASE_URL", "http://localhost")
+MCP_BASE_PORT = settings.effective_port
+MCP_BASE_URL = settings.mcp_base_url
 
 # Global reference to the MCP server instance for testing purposes
 mcp = None
