@@ -7,6 +7,7 @@ from fastmcp import FastMCP
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
 from inch_mcp_server.utils.logger_setup import setup_logger
+from inch_mcp_server.database import initialize_database, close_database_connections
 
 logger = setup_logger("server")
 
@@ -19,6 +20,30 @@ LimitOrderHandler(mcp)
 
 mcp_app = mcp.http_app()
 
+async def lifespan(app):
+    """Lifespan context manager for FastAPI app with database initialization."""
+    # Startup
+    logger.info("Starting up 1inch MCP Server...")
+    try:
+        # Initialize database and run migrations if needed
+        await initialize_database()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        logger.warning("Continuing without database initialization. Database may not be available.")
+        # Don't raise - allow server to start even if database is not available
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down 1inch MCP Server...")
+    try:
+        await close_database_connections()
+        logger.info("Database connections closed")
+    except Exception as e:
+        logger.error(f"Error closing database connections: {e}")
+
+
 # Create unified FastAPI app with MCP integration
 app = FastAPI(
     title="1inch MCP Server API",
@@ -27,7 +52,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    lifespan=mcp_app.lifespan  # Key integration point for MCP
+    lifespan=lifespan  # Combined lifespan for both MCP and database
 )
 
 
