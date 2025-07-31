@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
+from inch_mcp_server.core.models import PostLimitOrderV4Request
 from inch_mcp_server.core.services import post_order, fetch_and_store_orders
 from inch_mcp_server.utils.logger_setup import setup_logger
 from inch_mcp_server.database import initialize_database, close_database_connections
@@ -61,7 +62,7 @@ async def get_orders(chain: str, address: str):
 
 
 @app.post("/", tags=["orders"])
-async def store_order(chain: str, order: dict):
+async def store_order(chain: str, order: PostLimitOrderV4Request):
     return await post_order(chain, order)
 
 
