@@ -102,4 +102,4 @@ async def initialize_database() -> None:
             
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
-        raise 
+        raise

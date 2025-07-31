@@ -1,4 +1,6 @@
 import argparse
+from contextlib import asynccontextmanager
+
 import uvicorn
 
 from fastapi import FastAPI
@@ -17,62 +19,60 @@ MCP_BASE_URL = settings.mcp_base_url
 # Global reference to the MCP server instance
 mcp = FastMCP('1inch-mcp-server')
 LimitOrderHandler(mcp)
-
 mcp_app = mcp.http_app()
 
+
+@asynccontextmanager
 async def lifespan(app):
     """Lifespan context manager for FastAPI app with database initialization."""
-    # Startup
     logger.info("Starting up 1inch MCP Server...")
-    try:
-        # Initialize database and run migrations if needed
-        await initialize_database()
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
-        logger.warning("Continuing without database initialization. Database may not be available.")
+    # try:
+    #     # Initialize database and run migrations if needed
+    #     await initialize_database()
+    #     logger.info("Database initialized successfully")
+    # except Exception as e:
+    #     logger.error(f"Failed to initialize database: {e}")
+    #     logger.warning("Continuing without database initialization. Database may not be available.")
         # Don't raise - allow server to start even if database is not available
-    
+    # task = create_task()  # TODO: Implement the task to check orders
     yield
-    
-    # Shutdown
     logger.info("Shutting down 1inch MCP Server...")
-    try:
-        await close_database_connections()
-        logger.info("Database connections closed")
-    except Exception as e:
-        logger.error(f"Error closing database connections: {e}")
+    # try:
+    #     await close_database_connections()
+    #     logger.info("Database connections closed")
+    # except Exception as e:
+    #     logger.error(f"Error closing database connections: {e}")
+    # task.cancel()
 
 
-# Create unified FastAPI app with MCP integration
 app = FastAPI(
-    title="1inch MCP Server API",
-    description="REST API for the 1inch MCP Server",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
-    lifespan=lifespan  # Combined lifespan for both MCP and database
+    title="1inch-mcp",
+    description="1inch API Limit Order MCP",
+    version="0.0.1",
+    redoc_url=None,
+    swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"},
+    lifespan=mcp_app.lifespan,
 )
 
+@app.get("/", tags=["orders"])
+async def get_orders(wallet: str):
+    pass
 
-# Add FastAPI health check endpoint
-@app.get("/", tags=["health"])
+
+@app.post("/", tags=["orders"])
+async def store_order(wallet: str, order: dict):
+    pass
+
+
+@app.delete("/", tags=["orders"])
+async def delete_order(wallet: str, order_id: str):
+    pass
+
+
+@app.get("/health", tags=["health"])
 async def health_check():
-    """Health check endpoint for container orchestration."""
     return {"status": "healthy", "service": "1inch-mcp"}
 
-
-@app.get("/api/info", tags=["api"])
-async def api_info():
-    """Get API information."""
-    return {
-        "name": "1inch MCP Server",
-        "version": "1.0.0",
-        "description": "MCP server for 1inch Protocol",
-        "mcp_endpoint": "/mcp",
-        "docs": "/docs"
-    }
 
 # Mount MCP server - makes MCP tools available at /mcp endpoint
 app.mount("/", mcp_app)
