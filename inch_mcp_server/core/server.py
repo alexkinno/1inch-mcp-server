@@ -8,13 +8,14 @@ from fastmcp import FastMCP
 
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
+from inch_mcp_server.core.services import post_order, fetch_and_store_orders
 from inch_mcp_server.utils.logger_setup import setup_logger
 from inch_mcp_server.database import initialize_database, close_database_connections
 
 logger = setup_logger("server")
 
-MCP_BASE_PORT = settings.effective_port
 MCP_BASE_URL = settings.mcp_base_url
+MCP_BASE_PORT = settings.effective_port
 
 # Global reference to the MCP server instance
 mcp = FastMCP('1inch-mcp-server')
@@ -55,41 +56,18 @@ app = FastAPI(
 )
 
 @app.get("/", tags=["orders"])
-async def get_orders(wallet: str):
-    pass
+async def get_orders(chain: str, address: str):
+    return await fetch_and_store_orders(chain, address)
 
 
 @app.post("/", tags=["orders"])
-async def store_order(wallet: str, order: dict):
-    pass
-
-
-@app.delete("/", tags=["orders"])
-async def delete_order(wallet: str, order_id: str):
-    pass
+async def store_order(chain: str, order: dict):
+    return await post_order(chain, order)
 
 
 @app.get("/health", tags=["health"])
 async def health_check():
     return {"status": "healthy", "service": "1inch-mcp"}
-
-
-# Mount MCP server - makes MCP tools available at /mcp endpoint
-app.mount("/", mcp_app)
-
-
-def setup_stdio_server():
-    """Setup and run the MCP server with stdio transport."""
-    # For stdio, we only need the MCP instance
-    stdio_mcp = FastMCP('1inch-mcp-server')
-    LimitOrderHandler(stdio_mcp)
-    return stdio_mcp
-
-
-def setup_http_server():
-    """Set up the unified FastAPI + MCP server for HTTP transport."""
-    # Tools are already registered globally, just return the app
-    return app
 
 
 def main():
@@ -106,14 +84,7 @@ def main():
     
     args = parser.parse_args()
     logger.info(f'Starting 1inch MCP server with {args.transport} transport')
-
-    if args.transport == 'stdio':
-        # Run stdio server
-        stdio_mcp = setup_stdio_server()
-        stdio_mcp.run(transport='stdio')
-    else:
-        logger.info(f'Starting MCP server on port {MCP_BASE_PORT}')
-        uvicorn.run(app, host="0.0.0.0", port=MCP_BASE_PORT)
+    uvicorn.run(app, host=MCP_BASE_URL, port=MCP_BASE_PORT)
 
 
 if __name__ == '__main__':
