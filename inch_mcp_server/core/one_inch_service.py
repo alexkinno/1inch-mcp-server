@@ -18,6 +18,8 @@ class OneInchService:
             await self._client.aclose()
 
     async def post(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        if not self._client:
+            self._client = httpx.AsyncClient(base_url=self.base_url)
         url = f"{self.base_url}{endpoint}"
         headers = {"Accepts": "application/json", "Authorization": self.api_key}
         response = await self._client.post(url, params=params, headers=headers)
@@ -25,6 +27,8 @@ class OneInchService:
         return response
 
     async def get_orders_by_address(self, chain: str, address: str):
+        if not self._client:
+            self._client = httpx.AsyncClient(base_url=self.base_url)
         endpoint = f"{chain}/address/{address}"
         params = {
                 "page": 1,

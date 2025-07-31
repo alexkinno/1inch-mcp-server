@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # Accept either PORT or MCP_BASE_PORT; PORT has priority (commonly set by PaaS)
     port: Union[int, None] = Field(None, alias="PORT", description="Server port (overrides MCP_BASE_PORT)")
     mcp_base_port: int = Field(8000, alias="MCP_BASE_PORT", description="Default MCP server port")
-    mcp_base_url: str = Field("http://localhost", alias="MCP_BASE_URL", description="Base URL for MCP server")
+    mcp_base_url: str = Field("0.0.0.0", alias="MCP_BASE_URL", description="Base URL for MCP server")
     
     # Database configuration
     database_url: str = Field(
