@@ -5,6 +5,7 @@ import uvicorn
 
 from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastapi.middleware.cors import CORSMiddleware
 
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
@@ -45,7 +46,9 @@ async def lifespan(app):
     # except Exception as e:
     #     logger.error(f"Error closing database connections: {e}")
     # task.cancel()
-
+origins = [
+    "https://aiagents.hackathon.haust.app"
+]
 
 app = FastAPI(
     title="1inch-mcp",
@@ -54,6 +57,15 @@ app = FastAPI(
     redoc_url=None,
     swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"},
     lifespan=mcp_app.lifespan,
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/", tags=["orders"])
