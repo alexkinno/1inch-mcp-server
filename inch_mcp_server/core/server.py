@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from fastapi import FastAPI
+from fastapi_async_sqlalchemy import SQLAlchemyMiddleware
 from fastmcp import FastMCP
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -47,7 +48,10 @@ async def lifespan(app):
     #     logger.error(f"Error closing database connections: {e}")
     # task.cancel()
 origins = [
-    "https://aiagents.hackathon.haust.app"
+    "http://localhost",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://aiagents.hackathon.haust.app",
 ]
 
 app = FastAPI(
@@ -68,12 +72,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/", tags=["orders"])
+@app.get("/orders", tags=["orders"])
 async def get_orders(chain: str, address: str):
     return await fetch_and_store_orders(chain, address)
 
 
-@app.post("/", tags=["orders"])
+@app.post("/orders", tags=["orders"])
 async def store_order(chain: str, order: PostLimitOrderV4Request):
     return await post_order(chain, order)
 
