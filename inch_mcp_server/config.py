@@ -17,10 +17,15 @@ class Settings(BaseSettings):
     port: Union[int, None] = Field(None, alias="PORT", description="Server port (overrides MCP_BASE_PORT)")
     mcp_base_port: int = Field(8000, alias="MCP_BASE_PORT", description="Default MCP server port")
     mcp_base_url: str = Field("0.0.0.0", alias="MCP_BASE_URL", description="Base URL for MCP server")
-    
+    postgres_user: str = Field(None, alias="POSTGRES_USER")
+    postgres_password: str = Field(None, alias="POSTGRES_PASSWORD")
+    postgres_host: str = Field(None, alias="POSTGRES_HOST")
+    postgres_port: str = Field(None, alias="POSTGRES_PORT")
+    postgres_db: str = Field(None, alias="POSTGRES_DB")
+
     # Database configuration
     database_url: str = Field(
-        "postgresql+asyncpg://postgres:postgres@inch-mcp-postgres-service:5432/inch_mcp",
+        f"postgresql+asyncpg://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_db}",
         alias="DATABASE_URL",
         description="Database connection URL"
     )
