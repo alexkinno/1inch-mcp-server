@@ -85,7 +85,7 @@ app.add_middleware(
 )
 
 # Include the MCP app as a sub-application
-app.mount("/", mcp_app)
+app.mount("/mcp-server", mcp_app)
 
 
 @app.get("/orders", tags=["orders"])
