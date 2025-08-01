@@ -23,12 +23,6 @@ class Settings(BaseSettings):
     postgres_port: str = Field(None, alias="POSTGRES_PORT")
     postgres_db: str = Field(None, alias="POSTGRES_DB")
 
-    # Database configuration
-    database_url: str = Field(
-        f"postgresql+asyncpg://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_db}",
-        alias="DATABASE_URL",
-        description="Database connection URL"
-    )
     auto_migrate: bool = Field(
         True, 
         alias="AUTO_MIGRATE",
@@ -45,6 +39,10 @@ class Settings(BaseSettings):
     def effective_port(self) -> int:
         """Get the effective port to use, prioritizing PORT over MCP_BASE_PORT."""
         return self.port if self.port is not None else self.mcp_base_port
+
+    @property
+    def database_url(self) -> str:
+        return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
 
 # Global settings instance - import this from other modules
