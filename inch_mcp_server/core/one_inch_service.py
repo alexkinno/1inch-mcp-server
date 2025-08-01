@@ -21,7 +21,7 @@ class OneInchService:
         if self._client:
             await self._client.aclose()
 
-    async def get_orders_by_address(self, chain: str, address: str):
+    async def get_orders_by_address(self, chain: int, address: str):
         if not self._client:
             self._client = httpx.AsyncClient(base_url=self.base_url)
         endpoint = f"{chain}/address/{address}"
@@ -36,7 +36,7 @@ class OneInchService:
             raise HTTPException(status_code=response.status_code, detail=f"Error fetching orders: {response.text}")
         return response.json()
 
-    async def post_order(self, chain: str, data: Dict[str, Any]):
+    async def post_order(self, chain: int, data: Dict[str, Any]):
         if not self._client:
             self._client = httpx.AsyncClient(base_url=self.base_url)
         endpoint = f"{chain}"

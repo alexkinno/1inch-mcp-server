@@ -62,6 +62,18 @@ app = FastAPI(
     swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"},
     lifespan=mcp_app.lifespan,
 )
+#
+# app.add_middleware(
+#     SQLAlchemyMiddleware,
+#     db_url=settings.database_url,
+#     engine_args={
+#         "echo": True,
+#         "pool_pre_ping": True,
+#         "pool_size": 10,
+#         "max_overflow": 20,
+#     }
+# )
+
 
 # Add CORS middleware
 app.add_middleware(
@@ -73,12 +85,12 @@ app.add_middleware(
 )
 
 @app.get("/orders", tags=["orders"])
-async def get_orders(chain: str, address: str):
+async def get_orders(chain: int, address: str):
     return await fetch_and_store_orders(chain, address)
 
 
 @app.post("/orders", tags=["orders"])
-async def store_order(chain: str, order: PostLimitOrderV4Request):
+async def store_order(chain: int, order: PostLimitOrderV4Request):
     return await post_order(chain, order)
 
 
