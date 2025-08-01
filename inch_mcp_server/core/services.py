@@ -1,4 +1,3 @@
-from itertools import chain
 from uuid import uuid4
 
 from fastapi_async_sqlalchemy import db
@@ -55,8 +54,3 @@ async def post_order(chain: int, order_data: PostLimitOrderV4Request):
     db.session.add(entry)
     await db.session.commit()
     return response.json()
-
-async def fetch_all_orders():
-    query = select(LimitOrder)
-    result = (await db.session.scalars(query)).all()
-    return result

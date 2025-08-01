@@ -46,7 +46,7 @@ class OneInchService:
             self._client = httpx.AsyncClient(base_url=self.base_url)
         endpoint = f"{chain}"
         response = await self._client.post(endpoint, json=data, headers=self.headers)
-        if response.status_code != 200:
+        if response.status_code not in (200, 201):
             raise HTTPException(
                 status_code=response.status_code, detail=f"Error posting order: {response.json().get("message")}"
             )
