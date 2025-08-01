@@ -5,7 +5,7 @@ from sqlalchemy import delete, select
 
 from ..database import LimitOrder
 from ..utils.logger_setup import setup_logger
-from .models import FeeExtension, FeeInfoDTO, GetLimitOrdersV4Response, PostLimitOrderV4Request
+from .models import FeeExtension, FeeInfoDTO, GetLimitOrdersV4Response, PostLimitOrderV4Request, LimitOrderV4Response
 from .one_inch_service import OneInchService
 
 logger = setup_logger("services")
@@ -44,7 +44,7 @@ async def fetch_order_by_hash(chain: int, order_hash: str):
     try:
         raw_order = await one_inch_service.get_order_by_hash(chain, order_hash)
         logger.info("Raw API response for hash {}: {}".format(order_hash, raw_order))
-        order = GetLimitOrdersV4Response.model_validate(raw_order)
+        order = LimitOrderV4Response.model_validate(raw_order)
         logger.info("Successfully validated order with hash: {}".format(order_hash))
         return order
     except Exception as e:
