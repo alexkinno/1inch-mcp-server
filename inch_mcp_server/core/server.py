@@ -13,7 +13,6 @@ from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
 from inch_mcp_server.core.models import PostLimitOrderV4Request, FeeExtension
 from inch_mcp_server.core.services import post_order, fetch_and_store_orders, retrieve_order_fee
 from inch_mcp_server.utils.logger_setup import setup_logger
-from inch_mcp_server.database import initialize_database, close_database_connections
 
 logger = setup_logger("server")
 
@@ -62,17 +61,17 @@ app = FastAPI(
     swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"},
     lifespan=mcp_app.lifespan,
 )
-#
-# app.add_middleware(
-#     SQLAlchemyMiddleware,
-#     db_url=settings.database_url,
-#     engine_args={
-#         "echo": True,
-#         "pool_pre_ping": True,
-#         "pool_size": 10,
-#         "max_overflow": 20,
-#     }
-# )
+
+app.add_middleware(
+    SQLAlchemyMiddleware,
+    db_url=settings.database_url,
+    engine_args={
+        "echo": True,
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20,
+    }
+)
 
 
 # Add CORS middleware
