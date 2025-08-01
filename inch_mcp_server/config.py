@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     
     # Database configuration
     database_url: str = Field(
-        "postgresql+asyncpg://postgres:postgres@localhost:5434/inch_mcp",
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/inch_mcp",
         alias="DATABASE_URL",
         description="Database connection URL"
     )
