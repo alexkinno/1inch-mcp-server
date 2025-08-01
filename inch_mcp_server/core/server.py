@@ -10,8 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
-from inch_mcp_server.core.models import PostLimitOrderV4Request
-from inch_mcp_server.core.services import post_order, fetch_and_store_orders
+from inch_mcp_server.core.models import PostLimitOrderV4Request, FeeExtension
+from inch_mcp_server.core.services import post_order, fetch_and_store_orders, retrieve_order_fee
 from inch_mcp_server.utils.logger_setup import setup_logger
 from inch_mcp_server.database import initialize_database, close_database_connections
 
@@ -87,6 +87,11 @@ app.add_middleware(
 @app.get("/orders", tags=["orders"])
 async def get_orders(chain: int, address: str):
     return await fetch_and_store_orders(chain, address)
+
+@app.get("/fee/{chain}", tags=["orders"])
+async def get_fee(chain: int, makerAsset: str, takerAsset: str, makerAmount: int, takerAmount: int):
+    fee_extension = FeeExtension(makerAsset=makerAsset, takerAsset=takerAsset, makerAmount=makerAmount, takerAmount=takerAmount)
+    return await retrieve_order_fee(chain, fee_extension)
 
 
 @app.post("/orders", tags=["orders"])

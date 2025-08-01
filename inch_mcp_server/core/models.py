@@ -30,3 +30,18 @@ class PostLimitOrderV4Request(BaseModel):
     orderHash: str
     signature: str
     data: LimitOrderV4Data
+
+
+class FeeExtension(BaseModel):
+    makerAsset: str
+    takerAsset: str
+    makerAmount: int
+    takerAmount: int
+
+
+class FeeInfoDTO(BaseModel):
+    whitelist: dict
+    feeBps: int
+    whitelistDiscountPercent: int
+    protocolFeeReceiver: str
+    extensionAddress: str
