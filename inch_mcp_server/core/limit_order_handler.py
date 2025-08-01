@@ -2,7 +2,7 @@
 from typing import List
 
 from .one_inch_service import OneInchService
-from .services import fetch_and_store_orders, retrieve_order_fee
+from .services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash
 from .models import FeeExtension, FeeInfoDTO
 
 
@@ -97,3 +97,25 @@ class LimitOrderHandler:
                 return fee_info.model_dump()
             except Exception as e:
                 raise ValueError(f"Failed to retrieve fee info: {str(e)}")
+
+        @mcp.tool
+        async def get_limit_order_by_hash(chain: int, order_hash: str) -> dict:
+            """Get a specific limit order by its order hash on a specific chain.
+
+            Args:
+                chain: The blockchain chain ID (e.g., 1 for Ethereum, 137 for Polygon). Optional parameter, 1 by default
+                order_hash: The unique order hash to retrieve. Required parameter
+
+            Returns:
+                Dictionary containing the limit order data
+            """
+            if not chain or chain <= 0:
+                raise ValueError("Chain ID must be a positive integer")
+            if not order_hash or len(order_hash) != 66 or not order_hash.startswith("0x"):
+                raise ValueError("Order hash must be a valid 66-character hash starting with 0x")
+            
+            try:
+                order = await fetch_order_by_hash(chain, order_hash)
+                return order.model_dump()
+            except Exception as e:
+                raise ValueError(f"Failed to fetch order: {str(e)}")

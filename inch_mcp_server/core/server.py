@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
 from inch_mcp_server.core.models import FeeExtension, PostLimitOrderV4Request
-from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee
+from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_order_by_hash
 from inch_mcp_server.utils.logger_setup import setup_logger
 
 logger = setup_logger("server")
@@ -104,6 +104,11 @@ async def get_fee(chain: int, makerAsset: str, takerAsset: str, makerAmount: int
 @app.post("/orders", tags=["orders"])
 async def store_order(chain: int, order: PostLimitOrderV4Request):
     return await post_order(chain, order)
+
+
+@app.get("/orders/{order_hash}", tags=["orders"])
+async def get_order_by_hash(chain: int, order_hash: str):
+    return await fetch_order_by_hash(chain, order_hash)
 
 
 @app.get("/health", tags=["health"])

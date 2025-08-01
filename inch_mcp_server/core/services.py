@@ -40,6 +40,18 @@ async def retrieve_order_fee(chain: int, fee_extension: FeeExtension):
     return fee_info
 
 
+async def fetch_order_by_hash(chain: int, order_hash: str):
+    try:
+        raw_order = await one_inch_service.get_order_by_hash(chain, order_hash)
+        logger.info("Raw API response for hash {}: {}".format(order_hash, raw_order))
+        order = GetLimitOrdersV4Response.model_validate(raw_order)
+        logger.info("Successfully validated order with hash: {}".format(order_hash))
+        return order
+    except Exception as e:
+        logger.error("Failed to fetch/validate order with hash {}: {}".format(order_hash, str(e)))
+        raise
+
+
 async def post_order(chain: int, order_data: PostLimitOrderV4Request):
     logger.info("posting for {} order {}".format(chain, order_data))
     response = await one_inch_service.post_order(chain, order_data.model_dump(mode="json"))

@@ -16,7 +16,7 @@ class LimitOrderV4Data(BaseModel):
 
 
 class GetLimitOrdersV4Response(BaseModel):
-    signature: str
+    signature: Optional[str] = None
     orderHash: str
     createDateTime: str
     remainingMakerAmount: str
@@ -27,6 +27,7 @@ class GetLimitOrdersV4Response(BaseModel):
     takerRate: str
     isMakerContract: bool
     orderInvalidReason: Optional[str] = None
+    id: Optional[int] = None
 
 
 class PostLimitOrderV4Request(BaseModel):

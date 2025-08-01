@@ -41,6 +41,16 @@ class OneInchService:
             raise HTTPException(status_code=response.status_code, detail=f"Error fetching fee: {response.text}")
         return response.json()
 
+    async def get_order_by_hash(self, chain: int, order_hash: str):
+        if not self._client:
+            self._client = httpx.AsyncClient(base_url=self.base_url)
+        endpoint = f"{chain}/order/{order_hash}"
+        url = f"{self.base_url}{endpoint}"
+        response = await self._client.get(url, headers=self.headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=f"Error fetching order: {response.text}")
+        return response.json()
+
     async def post_order(self, chain: int, data: Dict[str, Any]):
         if not self._client:
             self._client = httpx.AsyncClient(base_url=self.base_url)
