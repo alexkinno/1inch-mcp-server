@@ -84,6 +84,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include the MCP app as a sub-application
+app.mount("/", mcp_app)
+
 
 @app.get("/orders", tags=["orders"])
 async def get_orders(chain: int, address: str):
