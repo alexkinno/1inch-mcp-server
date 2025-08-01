@@ -29,7 +29,7 @@ async def fetch_and_store_orders(chain: int, address: str):
         logger.info("outdated: {}".format(hashes_to_delete))
         await db.session.execute(delete(LimitOrder).where(LimitOrder.order_hash.in_(hashes_to_delete)))
         await db.session.commit()
-    # orders = [order for order in orders if order.orderHash in hashes_to_return]
+    orders = [order for order in orders if order.orderHash in hashes_to_return]
     return orders
 
 
