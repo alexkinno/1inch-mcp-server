@@ -4,25 +4,30 @@ FROM python:3.13-slim AS builder
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies and Poetry
+# Install system dependencies and uv
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     gcc \
     curl \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install poetry
+    && pip install uv
+
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_PYTHON_PREFERENCE=only-system
+ENV UV_FROZEN=true
 
 # Copy dependency files
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml uv.lock ./
 
 # Copy source code (needed for local package build)
 COPY main.py ./
 COPY README.md ./
 COPY inch_mcp_server/ ./inch_mcp_server/
 
-# Install dependencies (no dev dependencies, no root user venv)
-RUN poetry config virtualenvs.in-project true \
-    && poetry install --no-interaction --no-ansi
+# Install dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 # Production stage
 FROM python:3.13-slim AS production
