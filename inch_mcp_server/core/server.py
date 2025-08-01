@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
 from inch_mcp_server.core.models import FeeExtension, PostLimitOrderV4Request
-from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_all_orders
+from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee
 from inch_mcp_server.utils.logger_setup import setup_logger
 
 logger = setup_logger("server")
@@ -88,11 +88,6 @@ app.add_middleware(
 @app.get("/orders", tags=["orders"])
 async def get_orders(chain: int, address: str):
     return await fetch_and_store_orders(chain, address)
-
-
-@app.get("/orders/all",)
-async def get_all_orders():
-    return await fetch_all_orders()
 
 
 @app.get("/fee/{chain}", tags=["orders"])

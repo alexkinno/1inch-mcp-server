@@ -54,9 +54,3 @@ async def post_order(chain: int, order_data: PostLimitOrderV4Request):
     db.session.add(entry)
     await db.session.commit()
     return response.json()
-
-async def fetch_all_orders():
-    query = select(LimitOrder)
-    result = (await db.session.scalars(query)).all()
-    logger.info("all {}".format(result))
-    return result
