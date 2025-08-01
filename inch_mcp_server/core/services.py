@@ -18,8 +18,7 @@ async def fetch_and_store_orders(chain: int, address: str):
     logger.info("Fetched {} orders".format(len(orders)))
     retrieved_hashes = {order.orderHash for order in orders}
     logger.info("retrieved from api: {}".format(retrieved_hashes))
-    # query = select(LimitOrder).where((LimitOrder.blockchain_id == chain) & (LimitOrder.address == address))
-    query = select(LimitOrder)
+    query = select(LimitOrder).where((LimitOrder.blockchain_id == chain) & (LimitOrder.address == address.lower()))
     result = (await db.session.scalars(query)).all()
     stored_hashes = {order.order_hash for order in result}
     logger.info("retrieved from db: {}".format(stored_hashes))
@@ -47,7 +46,7 @@ async def post_order(chain: int, order_data: PostLimitOrderV4Request):
     entry = LimitOrder(
         id=uuid4(),
         blockchain_id=chain,
-        address=order_data.data.maker,
+        address=order_data.data.maker.lower(),
         order_hash=order_data.orderHash,
         data=order_data.model_dump(mode="json"),
     )
