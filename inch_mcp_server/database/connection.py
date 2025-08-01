@@ -1,7 +1,8 @@
 """Database connection management for 1inch MCP Server."""
 
 from typing import AsyncGenerator, Union
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine, async_sessionmaker
+
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from inch_mcp_server.config import settings
 from inch_mcp_server.utils.logger_setup import setup_logger
@@ -16,7 +17,7 @@ _session_factory: Union[async_sessionmaker[AsyncSession], None] = None
 def get_database_engine() -> AsyncEngine:
     """Get or create the database engine."""
     global _engine
-    
+
     if _engine is None:
         # Configure engine for PostgreSQL
         _engine = create_async_engine(
@@ -26,16 +27,18 @@ def get_database_engine() -> AsyncEngine:
             pool_size=10,
             max_overflow=20,
         )
-        
-        logger.info(f"Database engine created for: {settings.database_url.split('@')[-1] if '@' in settings.database_url else settings.database_url}")
-    
+
+        logger.info(
+            f"Database engine created for: {settings.database_url.split('@')[-1] if '@' in settings.database_url else settings.database_url}"
+        )
+
     return _engine
 
 
 def get_session_factory() -> async_sessionmaker[AsyncSession]:
     """Get or create the session factory."""
     global _session_factory
-    
+
     if _session_factory is None:
         engine = get_database_engine()
         _session_factory = async_sessionmaker(
@@ -46,7 +49,7 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
             autocommit=False,
         )
         logger.info("Database session factory created")
-    
+
     return _session_factory
 
 
@@ -67,9 +70,9 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 async def close_database_connections():
     """Close all database connections."""
     global _engine, _session_factory
-    
+
     if _engine:
         await _engine.dispose()
         _engine = None
         _session_factory = None
-        logger.info("Database connections closed") 
+        logger.info("Database connections closed")

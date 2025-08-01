@@ -4,12 +4,12 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 
+from sqlalchemy import create_engine
+
 from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
-from sqlalchemy import create_engine
-
 from inch_mcp_server.config import settings
 from inch_mcp_server.utils.logger_setup import setup_logger
 
@@ -21,17 +21,17 @@ def get_alembic_config() -> Config:
     # Get the project root directory (where alembic.ini should be)
     project_root = Path(__file__).parent.parent.parent
     alembic_ini_path = project_root / "alembic.ini"
-    
+
     if not alembic_ini_path.exists():
         raise FileNotFoundError(f"alembic.ini not found at {alembic_ini_path}")
-    
+
     config = Config(str(alembic_ini_path))
-    
+
     # Override the sqlalchemy.url with our current database URL
     # Convert async URL to sync URL for Alembic
     sync_url = settings.database_url.replace("+asyncpg", "+psycopg2")
     config.set_main_option("sqlalchemy.url", sync_url)
-    
+
     return config
 
 
@@ -60,7 +60,7 @@ def get_current_revision() -> Optional[str]:
         # Create sync engine for checking revision
         sync_url = settings.database_url.replace("+asyncpg", "+psycopg2")
         engine = create_engine(sync_url)
-        
+
         with engine.connect() as connection:
             context = MigrationContext.configure(connection)
             return context.get_current_revision()
@@ -74,12 +74,12 @@ def check_migrations_needed() -> bool:
     try:
         config = get_alembic_config()
         script = ScriptDirectory.from_config(config)
-        
+
         current_rev = get_current_revision()
         head_rev = script.get_current_head()
-        
+
         logger.info(f"Current revision: {current_rev}, Head revision: {head_rev}")
-        
+
         return current_rev != head_rev
     except Exception as e:
         logger.warning(f"Could not check migration status: {e}")
@@ -91,7 +91,7 @@ async def initialize_database() -> None:
     try:
         if settings.auto_migrate:
             logger.info("Auto-migration enabled, checking if migrations are needed...")
-            
+
             if check_migrations_needed():
                 logger.info("Running database migrations...")
                 await run_migrations()
@@ -99,7 +99,7 @@ async def initialize_database() -> None:
                 logger.info("Database is up to date, no migrations needed")
         else:
             logger.info("Auto-migration disabled, skipping migration check")
-            
+
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
         raise

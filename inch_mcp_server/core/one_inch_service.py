@@ -1,8 +1,7 @@
 import os
-
-import httpx
 from typing import Any, Dict
 
+import httpx
 from starlette.exceptions import HTTPException
 
 
@@ -25,11 +24,7 @@ class OneInchService:
         if not self._client:
             self._client = httpx.AsyncClient(base_url=self.base_url)
         endpoint = f"{chain}/address/{address}"
-        params = {
-                "page": 1,
-                "limit": 100,
-                "statuses": "1,2,3"
-            }
+        params = {"page": 1, "limit": 100, "statuses": "1,2,3"}
         url = f"{self.base_url}{endpoint}"
         response = await self._client.get(url, params=params, headers=self.headers)
         if response.status_code != 200:
@@ -52,5 +47,7 @@ class OneInchService:
         endpoint = f"{chain}"
         response = await self._client.post(endpoint, json=data, headers=self.headers)
         if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=f"Error posting order: {response.json().get("message")}")
+            raise HTTPException(
+                status_code=response.status_code, detail=f"Error posting order: {response.json().get("message")}"
+            )
         return response

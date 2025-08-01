@@ -11,15 +11,15 @@ class LimitOrderHandler:
             mcp: The MCP server instance (FastMCP v2)
         """
         self.mcp = mcp
-        
+
         # Register tools using FastMCP v2 decorator style
         @mcp.tool
         async def get_1inch_protocol_info(query: str) -> str:
             """Get information about the 1inch Limit Order Protocol.
-            
+
             Args:
                 query: User query about the protocol
-                
+
             Returns:
                 Description of the 1inch Protocol
             """

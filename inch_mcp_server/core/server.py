@@ -2,16 +2,15 @@ import argparse
 from contextlib import asynccontextmanager
 
 import uvicorn
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_async_sqlalchemy import SQLAlchemyMiddleware
 from fastmcp import FastMCP
-from fastapi.middleware.cors import CORSMiddleware
 
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
-from inch_mcp_server.core.models import PostLimitOrderV4Request, FeeExtension
-from inch_mcp_server.core.services import post_order, fetch_and_store_orders, retrieve_order_fee
+from inch_mcp_server.core.models import FeeExtension, PostLimitOrderV4Request
+from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee
 from inch_mcp_server.utils.logger_setup import setup_logger
 
 logger = setup_logger("server")
@@ -20,7 +19,7 @@ MCP_BASE_URL = settings.mcp_base_url
 MCP_BASE_PORT = settings.effective_port
 
 # Global reference to the MCP server instance
-mcp = FastMCP('1inch-mcp-server')
+mcp = FastMCP("1inch-mcp-server")
 LimitOrderHandler(mcp)
 mcp_app = mcp.http_app()
 
@@ -36,7 +35,7 @@ async def lifespan(app):
     # except Exception as e:
     #     logger.error(f"Failed to initialize database: {e}")
     #     logger.warning("Continuing without database initialization. Database may not be available.")
-        # Don't raise - allow server to start even if database is not available
+    # Don't raise - allow server to start even if database is not available
     # task = create_task()  # TODO: Implement the task to check orders
     yield
     logger.info("Shutting down 1inch MCP Server...")
@@ -46,6 +45,8 @@ async def lifespan(app):
     # except Exception as e:
     #     logger.error(f"Error closing database connections: {e}")
     # task.cancel()
+
+
 origins = [
     "http://localhost",
     "http://localhost:3000",
@@ -70,7 +71,7 @@ app.add_middleware(
         "pool_pre_ping": True,
         "pool_size": 10,
         "max_overflow": 20,
-    }
+    },
 )
 
 
@@ -83,13 +84,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/orders", tags=["orders"])
 async def get_orders(chain: int, address: str):
     return await fetch_and_store_orders(chain, address)
 
+
 @app.get("/fee/{chain}", tags=["orders"])
 async def get_fee(chain: int, makerAsset: str, takerAsset: str, makerAmount: int, takerAmount: int):
-    fee_extension = FeeExtension(makerAsset=makerAsset, takerAsset=takerAsset, makerAmount=makerAmount, takerAmount=takerAmount)
+    fee_extension = FeeExtension(
+        makerAsset=makerAsset, takerAsset=takerAsset, makerAmount=makerAmount, takerAmount=takerAmount
+    )
     return await retrieve_order_fee(chain, fee_extension)
 
 
@@ -106,19 +111,16 @@ async def health_check():
 def main():
     """Run the server with CLI argument support."""
     parser = argparse.ArgumentParser(
-        description='1inch MCP Server - Model Context Protocol server for 1inch API integration'
+        description="1inch MCP Server - Model Context Protocol server for 1inch API integration"
     )
     parser.add_argument(
-        '--transport', 
-        choices=['http', 'stdio'], 
-        default='http',
-        help='Transport method to use (default: http)'
+        "--transport", choices=["http", "stdio"], default="http", help="Transport method to use (default: http)"
     )
-    
+
     args = parser.parse_args()
-    logger.info(f'Starting 1inch MCP server with {args.transport} transport')
+    logger.info(f"Starting 1inch MCP server with {args.transport} transport")
     uvicorn.run(app, host=MCP_BASE_URL, port=MCP_BASE_PORT)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

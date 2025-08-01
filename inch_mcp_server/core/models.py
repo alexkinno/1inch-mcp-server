@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from typing import Optional
+
+from pydantic import BaseModel
 
 
 class LimitOrderV4Data(BaseModel):
@@ -13,6 +14,7 @@ class LimitOrderV4Data(BaseModel):
     extension: Optional[str] = None
     makerTraits: Optional[str] = None
 
+
 class GetLimitOrdersV4Response(BaseModel):
     signature: str
     orderHash: str
@@ -25,6 +27,7 @@ class GetLimitOrdersV4Response(BaseModel):
     takerRate: str
     isMakerContract: bool
     orderInvalidReason: Optional[str] = None
+
 
 class PostLimitOrderV4Request(BaseModel):
     orderHash: str

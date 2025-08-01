@@ -1,18 +1,19 @@
 """Configuration settings for the 1inch MCP Server using Pydantic Settings."""
 
 from typing import Union
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Configuration settings for the 1inch MCP Server.
-    
+
     Uses pydantic-settings to manage environment variables with validation
     and type conversion. Supports both PORT (commonly used by PaaS platforms)
     and MCP_BASE_PORT environment variables, with PORT taking precedence.
     """
-    
+
     # Accept either PORT or MCP_BASE_PORT; PORT has priority (commonly set by PaaS)
     port: Union[int, None] = Field(None, alias="PORT", description="Server port (overrides MCP_BASE_PORT)")
     mcp_base_port: int = Field(8000, alias="MCP_BASE_PORT", description="Default MCP server port")
@@ -23,11 +24,7 @@ class Settings(BaseSettings):
     postgres_port: str = Field(None, alias="POSTGRES_PORT")
     postgres_db: str = Field(None, alias="POSTGRES_DB")
 
-    auto_migrate: bool = Field(
-        True, 
-        alias="AUTO_MIGRATE",
-        description="Run migrations automatically on startup"
-    )
+    auto_migrate: bool = Field(True, alias="AUTO_MIGRATE", description="Run migrations automatically on startup")
 
     model_config = SettingsConfigDict(
         env_prefix="",  # Keep env var names as-is, no prefix
