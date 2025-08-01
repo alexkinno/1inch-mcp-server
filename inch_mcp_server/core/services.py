@@ -1,3 +1,4 @@
+from itertools import chain
 from uuid import uuid4
 
 from fastapi_async_sqlalchemy import db
@@ -29,7 +30,7 @@ async def fetch_and_store_orders(chain: int, address: str):
         logger.info("outdated: {}".format(hashes_to_delete))
         await db.session.execute(delete(LimitOrder).where(LimitOrder.order_hash.in_(hashes_to_delete)))
         await db.session.commit()
-    orders = [order for order in orders if order.orderHash in hashes_to_return]
+    # orders = [order for order in orders if order.orderHash in hashes_to_return]
     return orders
 
 
@@ -54,3 +55,8 @@ async def post_order(chain: int, order_data: PostLimitOrderV4Request):
     db.session.add(entry)
     await db.session.commit()
     return response.json()
+
+async def fetch_all_orders():
+    query = select(LimitOrder)
+    result = (await db.session.scalars(query)).all()
+    return result
