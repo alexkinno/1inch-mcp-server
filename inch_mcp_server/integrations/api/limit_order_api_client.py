@@ -5,7 +5,7 @@ import httpx
 from starlette.exceptions import HTTPException
 
 
-class OneInchService:
+class LimitOrderAPIClient:
     def __init__(self):
         self.base_url = "https://api.1inch.dev/orderbook/v4.0/"
         self.api_key = os.getenv("INCH_API_KEY")

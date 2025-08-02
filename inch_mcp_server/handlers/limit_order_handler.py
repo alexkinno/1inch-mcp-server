@@ -1,23 +1,23 @@
 """Tool handler for the 1inch Limit Order Protocol MCP Server."""
 from typing import List
 
-from ..core.one_inch_service import OneInchService
-from ..core.services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count, fetch_unique_active_pairs
-from ..core.models import FeeExtension, FeeInfoDTO
+from inch_mcp_server.integrations.services.limit_order_service import LimitOrderService
+from ..core.models import FeeExtension
 from ..utils import validate_evm_address, validate_hash
 
 
 class LimitOrderHandler:
     """Handler for retrieving information about the 1inch Limit Order Protocol."""
 
-    def __init__(self, mcp):
+    def __init__(self, mcp, limit_order_service: LimitOrderService):
         """Initialize the Limit Order handler.
 
         Args:
             mcp: The MCP server instance (FastMCP v2)
+            limit_order_service: The injected limit order service
         """
         self.mcp = mcp
-        self.one_inch_service = OneInchService()
+        self.limit_order_service = limit_order_service
 
         # Register tools using FastMCP v2 decorator style
         @mcp.tool
@@ -56,7 +56,7 @@ class LimitOrderHandler:
             validate_evm_address(address, "address", required=True)
             
             try:
-                return await fetch_and_store_orders(chain, address)
+                return await self.limit_order_service.fetch_and_store_orders(chain, address)
             except Exception as e:
                 raise ValueError(f"Failed to fetch orders: {str(e)}")
 
@@ -93,7 +93,7 @@ class LimitOrderHandler:
                     makerAmount=maker_amount,
                     takerAmount=taker_amount
                 )
-                fee_info = await retrieve_order_fee(chain, fee_extension)
+                fee_info = await self.limit_order_service.retrieve_order_fee(chain, fee_extension)
                 return fee_info.model_dump()
             except Exception as e:
                 raise ValueError(f"Failed to retrieve fee info: {str(e)}")
@@ -114,7 +114,7 @@ class LimitOrderHandler:
             validate_hash(order_hash, "Order hash", expected_length=66, required=True)
             
             try:
-                order = await fetch_order_by_hash(chain, order_hash)
+                order = await self.limit_order_service.fetch_order_by_hash(chain, order_hash)
                 return order.model_dump()
             except Exception as e:
                 raise ValueError(f"Failed to fetch order: {str(e)}")
@@ -147,7 +147,7 @@ class LimitOrderHandler:
             validate_evm_address(maker_asset, "maker_asset", required=False)
             
             try:
-                count_data = await fetch_orders_count(chain, statuses, taker_asset, maker_asset)
+                count_data = await self.limit_order_service.fetch_orders_count(chain, statuses, taker_asset, maker_asset)
                 return count_data.model_dump()
             except Exception as e:
                 raise ValueError(f"Failed to fetch order count: {str(e)}")
@@ -172,7 +172,7 @@ class LimitOrderHandler:
                 raise ValueError("Limit must be a positive integer between 1 and 100")
             
             try:
-                pairs_data = await fetch_unique_active_pairs(chain, page, limit)
+                pairs_data = await self.limit_order_service.fetch_unique_active_pairs(chain, page, limit)
                 return pairs_data.model_dump()
             except Exception as e:
                 raise ValueError(f"Failed to fetch unique active pairs: {str(e)}")

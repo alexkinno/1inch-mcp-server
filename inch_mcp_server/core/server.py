@@ -9,9 +9,9 @@ from fastapi_async_sqlalchemy import SQLAlchemyMiddleware
 from fastmcp import FastMCP
 
 from inch_mcp_server.config import settings
+from inch_mcp_server.dependencies import create_service_for_mcp, LimitOrderServiceDep
 from inch_mcp_server.handlers import LimitOrderHandler
 from inch_mcp_server.core.models import FeeExtension, PostLimitOrderV4Request
-from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count, fetch_unique_active_pairs
 from inch_mcp_server.utils.logger_setup import setup_logger
 
 logger = setup_logger("server")
@@ -21,7 +21,9 @@ MCP_BASE_PORT = settings.effective_port
 
 # Global reference to the MCP server instance
 mcp = FastMCP("1inch-mcp-server")
-LimitOrderHandler(mcp)
+
+_service_for_mcp = create_service_for_mcp()
+LimitOrderHandler(mcp, _service_for_mcp)
 mcp_app = mcp.http_app()
 
 
@@ -90,36 +92,36 @@ app.mount("/mcp-server", mcp_app)
 
 
 @app.get("/orders", tags=["limit-orders"])
-async def get_orders(chain: int, address: str):
-    return await fetch_and_store_orders(chain, address)
+async def get_orders(chain: int, address: str, service: LimitOrderServiceDep):
+    return await service.fetch_and_store_orders(chain, address)
 
 
 @app.get("/fee/{chain}", tags=["limit-orders"])
-async def get_fee(chain: int, makerAsset: str, takerAsset: str, makerAmount: int, takerAmount: int):
+async def get_fee(chain: int, makerAsset: str, takerAsset: str, makerAmount: int, takerAmount: int, service: LimitOrderServiceDep):
     fee_extension = FeeExtension(
         makerAsset=makerAsset, takerAsset=takerAsset, makerAmount=makerAmount, takerAmount=takerAmount
     )
-    return await retrieve_order_fee(chain, fee_extension)
+    return await service.retrieve_order_fee(chain, fee_extension)
 
 
 @app.post("/orders", tags=["limit-orders"])
-async def store_order(chain: int, order: PostLimitOrderV4Request):
-    return await post_order(chain, order)
+async def store_order(chain: int, order: PostLimitOrderV4Request, service: LimitOrderServiceDep):
+    return await service.post_order(chain, order)
 
 
 @app.get("/orders/{order_hash}", tags=["limit-orders"])
-async def get_order_by_hash(chain: int, order_hash: str):
-    return await fetch_order_by_hash(chain, order_hash)
+async def get_order_by_hash(chain: int, order_hash: str, service: LimitOrderServiceDep):
+    return await service.fetch_order_by_hash(chain, order_hash)
 
 
 @app.get("/orders/count/{chain}", tags=["limit-orders"])
-async def get_orders_count(chain: int, statuses: List[int], taker_asset: str = None, maker_asset: str = None):
-    return await fetch_orders_count(chain, statuses, taker_asset, maker_asset)
+async def get_orders_count(chain: int, statuses: List[int], service: LimitOrderServiceDep, taker_asset: str = None, maker_asset: str = None):
+    return await service.fetch_orders_count(chain, statuses, taker_asset, maker_asset)
 
 
 @app.get("/unique-active-pairs/{chain}", tags=["limit-orders"])
-async def get_unique_active_pairs(chain: int = 1, page: int = 1, limit: int = 100):
-    return await fetch_unique_active_pairs(chain, page, limit)
+async def get_unique_active_pairs(service: LimitOrderServiceDep, chain: int = 1, page: int = 1, limit: int = 100):
+    return await service.fetch_unique_active_pairs(chain, page, limit)
 
 
 @app.get("/health", tags=["health"])
