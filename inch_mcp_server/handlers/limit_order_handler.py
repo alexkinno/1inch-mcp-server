@@ -1,9 +1,9 @@
 """Tool handler for the 1inch Limit Order Protocol MCP Server."""
 from typing import List
 
-from .one_inch_service import OneInchService
-from .services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count
-from .models import FeeExtension, FeeInfoDTO
+from ..core.one_inch_service import OneInchService
+from ..core.services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count
+from ..core.models import FeeExtension, FeeInfoDTO
 from ..utils import validate_evm_address, validate_hash
 
 

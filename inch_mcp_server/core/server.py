@@ -9,7 +9,7 @@ from fastapi_async_sqlalchemy import SQLAlchemyMiddleware
 from fastmcp import FastMCP
 
 from inch_mcp_server.config import settings
-from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
+from inch_mcp_server.handlers import LimitOrderHandler
 from inch_mcp_server.core.models import FeeExtension, PostLimitOrderV4Request
 from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count
 from inch_mcp_server.utils.logger_setup import setup_logger
