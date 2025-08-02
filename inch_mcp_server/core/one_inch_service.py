@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import httpx
 from starlette.exceptions import HTTPException
@@ -61,3 +61,23 @@ class OneInchService:
                 status_code=response.status_code, detail=f"Error posting order: {response.json().get("message")}"
             )
         return response
+
+    async def get_orders_count(self, chain: int, statuses: List[int], taker_asset: str = None, maker_asset: str = None):
+        if not self._client:
+            self._client = httpx.AsyncClient(base_url=self.base_url)
+        endpoint = f"{chain}/count"
+        params = {}
+        if statuses:
+            params["statuses"] = ','.join(map(str, statuses))
+
+        if taker_asset:
+            params["takerAsset"] = taker_asset
+
+        if maker_asset:
+            params["makerAsset"] = maker_asset
+
+        url = f"{self.base_url}{endpoint}"
+        response = await self._client.get(url, params=params, headers=self.headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=f"Error fetching order count: {response.text}")
+        return response.json()

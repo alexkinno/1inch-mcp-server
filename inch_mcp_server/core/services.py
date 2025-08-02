@@ -1,3 +1,4 @@
+from typing import List
 from uuid import uuid4
 
 from fastapi_async_sqlalchemy import db
@@ -5,7 +6,7 @@ from sqlalchemy import delete, select
 
 from ..database import LimitOrder
 from ..utils.logger_setup import setup_logger
-from .models import FeeExtension, FeeInfoDTO, GetLimitOrdersV4Response, PostLimitOrderV4Request, LimitOrderV4Response
+from .models import FeeExtension, FeeInfoDTO, GetLimitOrdersV4Response, PostLimitOrderV4Request, LimitOrderV4Response, GetLimitOrdersCountV4Response
 from .one_inch_service import OneInchService
 
 logger = setup_logger("services")
@@ -66,3 +67,14 @@ async def post_order(chain: int, order_data: PostLimitOrderV4Request):
     db.session.add(entry)
     await db.session.commit()
     return response.json()
+
+
+async def fetch_orders_count(chain: int, statuses: List[int], taker_asset: str = None, maker_asset: str = None):
+    try:
+        count_response = await one_inch_service.get_orders_count(chain, statuses, taker_asset, maker_asset)
+        logger.info("Fetched order count for chain {}, statuses {}: {}".format(chain, statuses, count_response))
+        count_data = GetLimitOrdersCountV4Response.model_validate(count_response)
+        return count_data
+    except Exception as e:
+        logger.error("Failed to fetch order count for chain {}, statuses {}: {}".format(chain, statuses, str(e)))
+        raise

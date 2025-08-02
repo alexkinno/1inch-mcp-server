@@ -63,3 +63,7 @@ class FeeInfoDTO(BaseModel):
     whitelistDiscountPercent: int
     protocolFeeReceiver: str
     extensionAddress: str
+
+
+class GetLimitOrdersCountV4Response(BaseModel):
+    count: int

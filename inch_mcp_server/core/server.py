@@ -1,5 +1,6 @@
 import argparse
 from contextlib import asynccontextmanager
+from typing import List
 
 import uvicorn
 from fastapi import FastAPI
@@ -10,7 +11,7 @@ from fastmcp import FastMCP
 from inch_mcp_server.config import settings
 from inch_mcp_server.core.limit_order_handler import LimitOrderHandler
 from inch_mcp_server.core.models import FeeExtension, PostLimitOrderV4Request
-from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_order_by_hash
+from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count
 from inch_mcp_server.utils.logger_setup import setup_logger
 
 logger = setup_logger("server")
@@ -88,12 +89,12 @@ app.add_middleware(
 app.mount("/mcp-server", mcp_app)
 
 
-@app.get("/orders", tags=["orders"])
+@app.get("/orders", tags=["limit-orders"])
 async def get_orders(chain: int, address: str):
     return await fetch_and_store_orders(chain, address)
 
 
-@app.get("/fee/{chain}", tags=["orders"])
+@app.get("/fee/{chain}", tags=["limit-orders"])
 async def get_fee(chain: int, makerAsset: str, takerAsset: str, makerAmount: int, takerAmount: int):
     fee_extension = FeeExtension(
         makerAsset=makerAsset, takerAsset=takerAsset, makerAmount=makerAmount, takerAmount=takerAmount
@@ -101,14 +102,19 @@ async def get_fee(chain: int, makerAsset: str, takerAsset: str, makerAmount: int
     return await retrieve_order_fee(chain, fee_extension)
 
 
-@app.post("/orders", tags=["orders"])
+@app.post("/orders", tags=["limit-orders"])
 async def store_order(chain: int, order: PostLimitOrderV4Request):
     return await post_order(chain, order)
 
 
-@app.get("/orders/{order_hash}", tags=["orders"])
+@app.get("/orders/{order_hash}", tags=["limit-orders"])
 async def get_order_by_hash(chain: int, order_hash: str):
     return await fetch_order_by_hash(chain, order_hash)
+
+
+@app.get("/orders/count/{chain}", tags=["limit-orders"])
+async def get_orders_count(chain: int, statuses: List[int], taker_asset: str = None, maker_asset: str = None):
+    return await fetch_orders_count(chain, statuses, taker_asset, maker_asset)
 
 
 @app.get("/health", tags=["health"])

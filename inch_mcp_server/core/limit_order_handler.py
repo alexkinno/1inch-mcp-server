@@ -2,8 +2,9 @@
 from typing import List
 
 from .one_inch_service import OneInchService
-from .services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash
+from .services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count
 from .models import FeeExtension, FeeInfoDTO
+from ..utils import validate_evm_address, validate_hash
 
 
 class LimitOrderHandler:
@@ -52,8 +53,7 @@ class LimitOrderHandler:
             """
             if not chain or chain <= 0:
                 raise ValueError("Chain ID must be a positive integer")
-            if not address or len(address) != 42 or not address.startswith("0x"):
-                raise ValueError("Address must be a valid Ethereum address (42 characters starting with 0x)")
+            validate_evm_address(address, "address", required=True)
             
             try:
                 return await fetch_and_store_orders(chain, address)
@@ -77,10 +77,10 @@ class LimitOrderHandler:
             """
             if not chain or chain <= 0:
                 raise ValueError("Chain ID must be a positive integer")
-            if not maker_asset or len(maker_asset) != 42 or not maker_asset.startswith("0x"):
-                raise ValueError("makerAsset must be a valid Ethereum address (42 characters starting with 0x)")
-            if not taker_asset or len(taker_asset) != 42 or not taker_asset.startswith("0x"):
-                raise ValueError("takerAsset must be a valid Ethereum address (42 characters starting with 0x)")
+
+            validate_evm_address(maker_asset, "makerAsset", required=True)
+            validate_evm_address(taker_asset, "takerAsset", required=True)
+
             if not maker_amount or maker_amount <= 0:
                 raise ValueError("makerAmount must be a positive integer")
             if not taker_amount or taker_amount <= 0:
@@ -111,11 +111,43 @@ class LimitOrderHandler:
             """
             if not chain or chain <= 0:
                 raise ValueError("Chain ID must be a positive integer")
-            if not order_hash or len(order_hash) != 66 or not order_hash.startswith("0x"):
-                raise ValueError("Order hash must be a valid 66-character hash starting with 0x")
+            validate_hash(order_hash, "Order hash", expected_length=66, required=True)
             
             try:
                 order = await fetch_order_by_hash(chain, order_hash)
                 return order.model_dump()
             except Exception as e:
                 raise ValueError(f"Failed to fetch order: {str(e)}")
+
+        @mcp.tool
+        async def get_limit_orders_count_by_filters(chain: int, statuses: List[int], taker_asset: str = None,
+                                                    maker_asset: str = None) -> dict:
+            """Get count of limit orders filtered by specified criteria (statuses).
+
+            Args:
+                chain: The blockchain chain ID (e.g., 1 for Ethereum, 137 for Polygon). Optional parameter, defaults to 1
+                statuses: list of statuses to filter by. Valid statuses: 1 - Valid orders, 2 - Temporarily invalid orders, 3 - Invalid orders. Optional parameter, defaults to empty list
+                taker_asset: The token address that makers want to buy. Optional parameter
+                maker_asset: The token address that makers want to sell. Optional parameter
+
+            Returns:
+                Dictionary containing the count of orders matching the specified filters
+            """
+            if not chain or chain <= 0:
+                raise ValueError("Chain ID must be a positive integer")
+            if not statuses:
+                raise ValueError("Statuses parameter is required")
+            
+            # Validate statuses format
+            if any(status not in [1, 2, 3] for status in statuses):
+                raise ValueError("Statuses must be a list of integers (1, 2, or 3)")
+            
+            # Validate asset addresses if provided
+            validate_evm_address(taker_asset, "taker_asset", required=False)
+            validate_evm_address(maker_asset, "maker_asset", required=False)
+            
+            try:
+                count_data = await fetch_orders_count(chain, statuses, taker_asset, maker_asset)
+                return count_data.model_dump()
+            except Exception as e:
+                raise ValueError(f"Failed to fetch order count: {str(e)}")
