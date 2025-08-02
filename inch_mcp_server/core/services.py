@@ -6,7 +6,7 @@ from sqlalchemy import delete, select
 
 from ..database import LimitOrder
 from ..utils.logger_setup import setup_logger
-from .models import FeeExtension, FeeInfoDTO, GetLimitOrdersV4Response, PostLimitOrderV4Request, LimitOrderV4Response, GetLimitOrdersCountV4Response
+from .models import FeeExtension, FeeInfoDTO, GetLimitOrdersV4Response, PostLimitOrderV4Request, LimitOrderV4Response, GetLimitOrdersCountV4Response, GetActiveUniquePairsResponse
 from .one_inch_service import OneInchService
 
 logger = setup_logger("services")
@@ -77,4 +77,15 @@ async def fetch_orders_count(chain: int, statuses: List[int], taker_asset: str =
         return count_data
     except Exception as e:
         logger.error("Failed to fetch order count for chain {}, statuses {}: {}".format(chain, statuses, str(e)))
+        raise
+
+
+async def fetch_unique_active_pairs(chain: int = 1, page: int = 1, limit: int = 100):
+    try:
+        pairs_response = await one_inch_service.get_unique_active_pairs(chain, page, limit)
+        logger.info("Fetched unique active pairs for chain {}, page {}, limit {}: {}".format(chain, page, limit, pairs_response))
+        pairs_data = GetActiveUniquePairsResponse.model_validate(pairs_response)
+        return pairs_data
+    except Exception as e:
+        logger.error("Failed to fetch unique active pairs for chain {}, page {}, limit {}: {}".format(chain, page, limit, str(e)))
         raise

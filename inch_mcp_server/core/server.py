@@ -11,7 +11,7 @@ from fastmcp import FastMCP
 from inch_mcp_server.config import settings
 from inch_mcp_server.handlers import LimitOrderHandler
 from inch_mcp_server.core.models import FeeExtension, PostLimitOrderV4Request
-from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count
+from inch_mcp_server.core.services import fetch_and_store_orders, post_order, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count, fetch_unique_active_pairs
 from inch_mcp_server.utils.logger_setup import setup_logger
 
 logger = setup_logger("server")
@@ -115,6 +115,11 @@ async def get_order_by_hash(chain: int, order_hash: str):
 @app.get("/orders/count/{chain}", tags=["limit-orders"])
 async def get_orders_count(chain: int, statuses: List[int], taker_asset: str = None, maker_asset: str = None):
     return await fetch_orders_count(chain, statuses, taker_asset, maker_asset)
+
+
+@app.get("/unique-active-pairs/{chain}", tags=["limit-orders"])
+async def get_unique_active_pairs(chain: int = 1, page: int = 1, limit: int = 100):
+    return await fetch_unique_active_pairs(chain, page, limit)
 
 
 @app.get("/health", tags=["health"])

@@ -2,7 +2,7 @@
 from typing import List
 
 from ..core.one_inch_service import OneInchService
-from ..core.services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count
+from ..core.services import fetch_and_store_orders, retrieve_order_fee, fetch_order_by_hash, fetch_orders_count, fetch_unique_active_pairs
 from ..core.models import FeeExtension, FeeInfoDTO
 from ..utils import validate_evm_address, validate_hash
 
@@ -151,3 +151,28 @@ class LimitOrderHandler:
                 return count_data.model_dump()
             except Exception as e:
                 raise ValueError(f"Failed to fetch order count: {str(e)}")
+
+        @mcp.tool
+        async def get_unique_active_token_pairs(chain: int = 1, page: int = 1, limit: int = 100) -> dict:
+            """Get unique active token pairs available for limit orders on a specific chain.
+
+            Args:
+                chain: The blockchain chain ID (e.g., 1 for Ethereum, 137 for Polygon). Optional parameter, defaults to 1
+                page: Page number for pagination. Optional parameter, defaults to 1
+                limit: Number of pairs per page (1-100). Optional parameter, defaults to 100
+
+            Returns:
+                Dictionary containing the list of unique active token pairs and pagination metadata
+            """
+            if not chain or chain <= 0:
+                raise ValueError("Chain ID must be a positive integer")
+            if not page or page <= 0:
+                raise ValueError("Page must be a positive integer")
+            if not limit or limit <= 0 or limit > 100:
+                raise ValueError("Limit must be a positive integer between 1 and 100")
+            
+            try:
+                pairs_data = await fetch_unique_active_pairs(chain, page, limit)
+                return pairs_data.model_dump()
+            except Exception as e:
+                raise ValueError(f"Failed to fetch unique active pairs: {str(e)}")

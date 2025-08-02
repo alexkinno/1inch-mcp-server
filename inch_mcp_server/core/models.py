@@ -65,5 +65,22 @@ class FeeInfoDTO(BaseModel):
     extensionAddress: str
 
 
+class TokenPair(BaseModel):
+    makerAsset: str
+    takerAsset: str
+
+
+class PaginationMeta(BaseModel):
+    totalItems: int
+    currentPage: int
+    itemsPerPage: int
+    totalPages: int
+
+
+class GetActiveUniquePairsResponse(BaseModel):
+    items: list[TokenPair]
+    meta: PaginationMeta
+
+
 class GetLimitOrdersCountV4Response(BaseModel):
     count: int

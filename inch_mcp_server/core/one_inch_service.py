@@ -81,3 +81,14 @@ class OneInchService:
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=f"Error fetching order count: {response.text}")
         return response.json()
+
+    async def get_unique_active_pairs(self, chain: int = 1, page: int = 1, limit: int = 100):
+        if not self._client:
+            self._client = httpx.AsyncClient(base_url=self.base_url)
+        endpoint = f"{chain}/unique-active-pairs"
+        params = {"page": page, "limit": limit}
+        url = f"{self.base_url}{endpoint}"
+        response = await self._client.get(url, params=params, headers=self.headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=f"Error fetching unique active pairs: {response.text}")
+        return response.json()
